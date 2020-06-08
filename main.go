@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -23,7 +24,6 @@ func main() {
 func index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	w.Header().Add("Content-Type", "html/text")
-	testing(w)
 	tpl.ExecuteTemplate(w, "index.gohtml", nil)
 
 }
@@ -37,6 +37,34 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+
+		uid := userCount + 1
+		role := "user"
+		userCount++
+		name := r.PostFormValue("name")
+		password := r.PostFormValue("password")
+
+		u := user{
+			name,
+			password,
+			uid,
+			role,
+		}
+
+		user, err := createUser(u)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+		}
+
+		userDb[uid] = user
+
+		fmt.Println(user)
+		http.Redirect(w, r, "/", 303)
+
+		fmt.Println(userDb)
+		return
+	}
 	tpl.ExecuteTemplate(w, "register.gohtml", nil)
 }
 
