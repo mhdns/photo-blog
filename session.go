@@ -1,10 +1,40 @@
 package main
 
-import "io"
+import (
+	"net/http"
+	"strconv"
+)
 
-var sessionDb map[string]string
-var imageDb map[string]string
+var sessionDb = map[int]int{}
+var sessionCount int
+var imageDb = map[string]string{}
 
-func testing(w io.Writer) {
-	io.WriteString(w, "Working!!")
+func createSession(uid int) int {
+	sessionCount++
+	sessionDb[sessionCount] = uid
+
+	return sessionCount
+}
+
+func issueCookie(sessionID int, w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   "SessionID",
+		Value:  strconv.Itoa(sessionID),
+		MaxAge: 300,
+	})
+}
+
+func alreadyLoggedIn(r *http.Request) bool {
+	c, err := r.Cookie("SessionID")
+	if err != nil {
+		return false
+	}
+
+	v, err := strconv.Atoi(c.Value)
+	if err != nil {
+		return false
+	}
+	_, ok := userDb[sessionDb[v]]
+
+	return ok
 }

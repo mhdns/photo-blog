@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,12 +32,29 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	tpl.ExecuteTemplate(w, "home.gohtml", nil)
+	if alreadyLoggedIn(r) {
+		c, err := r.Cookie("SessionID")
+		if err != nil {
+			http.Redirect(w, r, "/login", 303)
+			return
+		}
+		sessionID, err := strconv.Atoi(c.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", 303)
+			return
+		}
+		tpl.ExecuteTemplate(w, "home.gohtml", userDb[sessionDb[sessionID]].name)
+		return
+	}
+	http.Redirect(w, r, "/login", 303)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == http.MethodPost {
+	if alreadyLoggedIn(r) {
+		http.Redirect(w, r, "/home", 303)
+		return
+	} else if r.Method == http.MethodPost {
 		name := r.PostFormValue("name")
 		password := r.PostFormValue("password")
 
@@ -62,6 +80,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid Credentials", 400)
 		}
 
+		// Issue Cookie
+		issueCookie(createSession(u.uid), w)
+
 		http.Redirect(w, r, "/home", 303)
 		return
 	}
@@ -70,7 +91,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	if alreadyLoggedIn(r) {
+		http.Redirect(w, r, "/home", 303)
+		return
+	} else if r.Method == http.MethodPost {
 
 		uid := userCount + 1
 		role := "user"
@@ -94,10 +118,10 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 		userDb[uid] = user
 
-		fmt.Println(user)
-		http.Redirect(w, r, "/", 303)
+		// Issue Cookie
+		issueCookie(createSession(u.uid), w)
 
-		fmt.Println(userDb)
+		http.Redirect(w, r, "/", 303)
 		return
 	}
 	tpl.ExecuteTemplate(w, "register.gohtml", nil)

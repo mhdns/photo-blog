@@ -13,7 +13,14 @@ type user struct {
 	role     string
 }
 
-var userDb = map[int]user{}
+var userDb = map[int]user{
+	1: {
+		"Anas",
+		"$2a$04$P.zy.MiDNiAsIMz7Jgq37ubEbcuhDR9HPlEOBMDT8Z6nSJ/EOJawK",
+		1,
+		"user",
+	},
+}
 var userCount int
 
 func createUser(u user) (user, error) {
