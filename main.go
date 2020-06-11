@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -88,6 +89,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tpl.ExecuteTemplate(w, "login.gohtml", nil)
+	return
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
@@ -125,8 +127,60 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tpl.ExecuteTemplate(w, "register.gohtml", nil)
+	return
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && alreadyLoggedIn(r) {
+		// Parse the multipart form
+		err := r.ParseMultipartForm(10 << 20)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		// Get the file from form
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		defer file.Close()
+
+		// fmt.Printf("Uploaded File: %+v\n", header.Filename)
+		// fmt.Printf("File Size: %+v\n", header.Size)
+		// fmt.Printf("MIME Header: %+v\n", header.Header)
+
+		// Get userid
+		c, err := r.Cookie("SessionID")
+		if err != nil {
+			http.Redirect(w, r, "/login", 303)
+			return
+		}
+		sessionID, err := strconv.Atoi(c.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", 303)
+			return
+		}
+
+		filename := fmt.Sprintf("%v-upload-*.jpeg", sessionDb[sessionID])
+		tempFile, err := ioutil.TempFile("public/user_images", filename)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer tempFile.Close()
+
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		tempFile.Write(fileBytes)
+
+		imageDb[userDb[sessionDb[sessionID]].uid] = filename
+		tpl.ExecuteTemplate(w, "upload.gohtml", nil)
+		return
+	}
+
 	tpl.ExecuteTemplate(w, "upload.gohtml", nil)
 }

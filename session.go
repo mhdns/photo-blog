@@ -7,7 +7,6 @@ import (
 
 var sessionDb = map[int]int{}
 var sessionCount int
-var imageDb = map[string]string{}
 
 func createSession(uid int) int {
 	sessionCount++

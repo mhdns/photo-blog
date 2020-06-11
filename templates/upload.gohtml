@@ -6,9 +6,17 @@
 </head>
 
 <body>
+<div>
+  <a href="/home">home</a>
+  <a href="/login">login</a>
+  <a href="/register">register</a>
+  <a href="/upload">upload</a>
+</div>
 
-Hello from upload
-
+<form action="/upload" method="post" enctype="multipart/form-data" >
+    <input type="file" id="file" name="file" />
+    <button type="Submit">Upload</button>
+  </form>
 </body>
 
 </html>
