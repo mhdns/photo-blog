@@ -22,6 +22,7 @@ func main() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/home", home)
 	http.HandleFunc("/upload", upload)
+	http.Handle("/resources/", http.StripPrefix("/resources", http.FileServer(http.Dir("."))))
 	http.ListenAndServe(":5000", nil)
 }
 
@@ -44,7 +45,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/login", 303)
 			return
 		}
-		tpl.ExecuteTemplate(w, "home.gohtml", userDb[sessionDb[sessionID]].name)
+		tpl.ExecuteTemplate(w, "home.gohtml", imageDb[sessionDb[sessionID]])
 		return
 	}
 	http.Redirect(w, r, "/login", 303)
@@ -79,6 +80,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		err = bcrypt.CompareHashAndPassword([]byte(u.password), []byte(password))
 		if err != nil {
 			http.Error(w, "Invalid Credentials", 400)
+			return
 		}
 
 		// Issue Cookie
@@ -140,7 +142,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get the file from form
-		file, _, err := r.FormFile("file")
+		file, header, err := r.FormFile("file")
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
@@ -163,21 +165,19 @@ func upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		filename := fmt.Sprintf("%v-upload-*.jpeg", sessionDb[sessionID])
-		tempFile, err := ioutil.TempFile("public/user_images", filename)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer tempFile.Close()
+		filename := header.Filename
 
 		fileBytes, err := ioutil.ReadAll(file)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		tempFile.Write(fileBytes)
+		err = ioutil.WriteFile(fmt.Sprintf("public/user_images/%v", filename), fileBytes, 0644)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-		imageDb[userDb[sessionDb[sessionID]].uid] = filename
+		imageDb[userDb[sessionDb[sessionID]].uid] = append(imageDb[userDb[sessionDb[sessionID]].uid], filename)
 		tpl.ExecuteTemplate(w, "upload.gohtml", nil)
 		return
 	}

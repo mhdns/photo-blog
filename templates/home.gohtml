@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>HOME</title>
+    <style> 
+      img {
+        width: 100px;
+        height: 100px;
+      }
+    </style>
 </head>
 
 <body>
@@ -13,7 +19,10 @@
   <a href="/upload">upload</a>
 </div>
 
-Hello {{.}}
+
+{{range $i := .}}
+  <img src="resources/public/user_images/{{$i}}"  alt="resources/public/user_images/{{$i}}" />
+{{end}}
 
 </body>
 
