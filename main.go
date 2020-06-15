@@ -19,6 +19,7 @@ func init() {
 func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/logout", logout)
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/home", home)
 	http.HandleFunc("/upload", upload)
@@ -181,6 +182,23 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		tpl.ExecuteTemplate(w, "upload.gohtml", nil)
 		return
 	}
+	if alreadyLoggedIn(r) {
+		tpl.ExecuteTemplate(w, "upload.gohtml", nil)
+		return
+	}
 
-	tpl.ExecuteTemplate(w, "upload.gohtml", nil)
+	tpl.ExecuteTemplate(w, "login.gohtml", nil)
+}
+
+func logout(w http.ResponseWriter, r *http.Request) {
+	if alreadyLoggedIn(r) {
+		c, err := r.Cookie("SessionID")
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+		c.MaxAge = -1
+
+		http.SetCookie(w, c)
+		http.Redirect(w, r, "/", 303)
+	}
 }
