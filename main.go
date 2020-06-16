@@ -17,6 +17,7 @@ func init() {
 }
 
 func main() {
+	fmt.Println("Connected to Server...")
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/logout", logout)

@@ -1,0 +1,11 @@
+version: '3.3'
+services:
+  photo-blog:
+    build:
+      dockerfile: Dockerfile.dev
+      context: .
+    working_dir: /app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
