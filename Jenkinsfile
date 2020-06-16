@@ -5,10 +5,6 @@ pipeline {
     }
   }
 
-  environment {
-
-  }
-
   stages {
     stage("test")  {
       steps {
