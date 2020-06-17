@@ -21,7 +21,7 @@ var userDb = map[int]user{
 		"user",
 	},
 }
-var userCount int
+var userCount int = 2
 var imageDb = map[int][]string{}
 
 func createUser(u user) (user, error) {
