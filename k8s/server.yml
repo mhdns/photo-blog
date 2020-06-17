@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photo-blog-deployment
+  labels:
+    app: photo-blog
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: photo-blog
+  template:
+    metadata:
+      labels:
+        app: photo-blog
+    spec:
+      containers:
+      - name: photo-blog
+        image: mhdns/photo_blog:v4
+        ports:
+        - containerPort: 5000
+
